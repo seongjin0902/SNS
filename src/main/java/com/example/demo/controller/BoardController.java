@@ -6,8 +6,11 @@ import com.example.demo.domain.dto.UserDto;
 import com.example.demo.domain.entity.Board;
 import com.example.demo.domain.entity.User;
 import com.example.demo.domain.repository.BoardRepository;
+import com.example.demo.domain.repository.FollowRepository;
+import com.example.demo.domain.repository.HeartRepository;
 import com.example.demo.domain.repository.UserRepository;
 import com.example.demo.domain.service.BoardService;
+import com.example.demo.domain.service.FollowService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -44,12 +47,27 @@ public class BoardController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private FollowService followService;
+
+    @Autowired
+    private FollowRepository followRepository;
+
 
     @GetMapping("/list")
-    public void list(Model model){
+    public void list(Model model, Authentication authentication){
         log.info("GET /list");
 
-        // 게시물을 날짜 기준으로 내림차순 정렬하여 가져옵니다.
+        // 현재유저정보 가져오기
+        PrincipalDetails principal = (PrincipalDetails)authentication.getPrincipal();
+
+        String currentUser = principal.getUser().getEmail();
+
+        // 팔로우 리스트를 가져오기
+        List<User> followList = followService.getFollowList(currentUser);
+//        List<String> followProfileList = followService.getFollowListProfile(currentUser);
+
+        // 게시물을 날짜 기준으로 내림차순 정렬
         List<Object[]> list = boardService.getBoardList();
 
         List<Map<String, Object>> dataList = new ArrayList<>();
@@ -65,6 +83,8 @@ public class BoardController {
         System.out.println("dataList : " + dataList);
 
         model.addAttribute("dataList", dataList);
+        model.addAttribute("followList", followList);
+//        model.addAttribute("followProfileList", followProfileList);
 
     }
 
@@ -97,12 +117,10 @@ public class BoardController {
 
         //서비스 실행
         Board board = boardService.getBoardOne(number);
+        List<String> files = board.getFiles();
 
-
-        System.out.println("update's dto : " + board);
-
-        // 모델에 게시물 정보 전달
-        model.addAttribute("boardDto", board);
+        model.addAttribute("files", files);
+        model.addAttribute("board", board);
 
 
     }
@@ -199,7 +217,8 @@ public class BoardController {
     }
 
     @GetMapping("/like/{number}")
-    public ResponseEntity<String> like(@PathVariable("number") Long number, Model model) {
+    @ResponseBody
+    public boolean like(@PathVariable("number") Long number) {
         System.out.println("[보드컨트롤러]의 라이크(겟)입니다.");
         // 현재 인증된 사용자의 이메일 가져오기
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -217,18 +236,42 @@ public class BoardController {
             System.out.println("[보드컨트롤러]보드서비스의 에드라이크 호출끝");
 
             //html로 isLiked 보내기 왜?
-            model.addAttribute("isLiked", isLiked);
+//            model.addAttribute("isLiked", isLiked);
 
             System.out.println("isLiked : " + isLiked);
 
-            if (isLiked) {
-                return ResponseEntity.ok("Liked successfully.");
-            } else {
-                return ResponseEntity.ok("Already liked.");
-            }
+            return isLiked;
+
+//            if (isLiked) {
+//                return ResponseEntity.ok("Liked successfully.");
+//            } else {
+//                return ResponseEntity.ok("Already liked.");
+//            }
         } else {
-            return ResponseEntity.ok("Board not found.");
+            return false;
         }
+    }
+
+    @GetMapping("/get-like-status/{number}")
+    @ResponseBody
+    public String likeStatus(@PathVariable("number") Long number){
+
+        // 현재 인증된 사용자의 이메일 가져오기
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        // 게시물 번호로 해당 게시물 정보 가져오기
+        Optional<Board> boardOptional = boardRepository.findByNum(number);
+
+        Board board = boardOptional.get();
+        User user = userRepository.findById(email).get();
+
+        if (boardService.isLiked(user, board)) {
+            return "true";
+        } else {
+            return "false";
+        }
+
     }
 
     @GetMapping("/list/search-contents")
@@ -241,6 +284,7 @@ public class BoardController {
             Map<String, Object> data = new HashMap<>();
             data.put("board", row[0]); // 여기에서 row[0]는 Board 객체
             data.put("profile", row[1]); // 여기에서 row[1]은 profile 문자열
+            data.put("cnt", row[2]); //cnt 가져옵니다.
 
             System.out.println(data);
 
@@ -319,11 +363,33 @@ public class BoardController {
 
             System.out.println("남에 보드정보 : "+ namBoards);
 
+            // 팔로우 리스트를 가져오기
+            List<User> followList = followService.getFollowList(boardEmail);
+
+            //팔로워 리스트를 가져오기
+            List<User> followerList = followService.getFollowerList(boardEmail);
+
+            String cntFollowing = followRepository.CntFollowing(boardEmail);
+            if (cntFollowing==null){
+                cntFollowing="0";
+            }
+            String cntFollower = followRepository.CntFollower(boardEmail);
+            if (cntFollower==null){
+                cntFollower="0";
+            }
+
+            model.addAttribute("cntFollowing",cntFollowing);
+            model.addAttribute("cntFollower",cntFollower);
+
             //남의 게시물 정보 보내기
             model.addAttribute("namBoards", namBoards);
 
             //남의 유저 정보 보내기
             model.addAttribute("namUser", user);
+
+            //팔로우/팔로워 목록 보내기
+            model.addAttribute("followList", followList);
+            model.addAttribute("followerList", followerList);
         }
         return "nampage";
     }
@@ -342,11 +408,33 @@ public class BoardController {
 
             System.out.println("남에 보드정보 : "+ namBoards);
 
+            // 팔로우 리스트를 가져오기
+            List<User> followList = followService.getFollowList(email);
+
+            //팔로워 리스트를 가져오기
+            List<User> followerList = followService.getFollowerList(email);
+
+            String cntFollowing = followRepository.CntFollowing(email);
+            if (cntFollowing==null){
+                cntFollowing="0";
+            }
+            String cntFollower = followRepository.CntFollower(email);
+            if (cntFollower==null){
+                cntFollower="0";
+            }
+
+            model.addAttribute("cntFollowing",cntFollowing);
+            model.addAttribute("cntFollower",cntFollower);
+
             //남의 게시물 정보 보내기
             model.addAttribute("namBoards", namBoards);
 
             //남의 유저 정보 보내기
             model.addAttribute("namUser", user);
+
+            //팔로우/팔로워 목록 보내기
+            model.addAttribute("followList", followList);
+            model.addAttribute("followerList", followerList);
         }
         return "nampage";
     }

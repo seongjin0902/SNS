@@ -205,7 +205,7 @@ public class BoardService {
         //------------------------------------------------
         //이벤트리스너에 등록
         //------------------------------------------------
-         publisher.publishEvent(new ReplyEvent(this,reply));
+        publisher.publishEvent(new ReplyEvent(this,reply));
     }
 
     public List<ReplyDto> getReplyList(Long bno) {
@@ -301,8 +301,8 @@ public class BoardService {
         }
     }
 
-    //    로그인한 사용자가 해당 글에 하트를 눌렀는지 확인 하기 위한 메서드(true/false)
-    public boolean hasUserLikedPost(User user, Board board) {
+    public boolean isLiked(User user, Board board){
+
         return heartRepository.existsByUserAndBoard(user, board);
     }
 

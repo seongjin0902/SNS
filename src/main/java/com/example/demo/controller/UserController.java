@@ -5,7 +5,9 @@ import com.example.demo.domain.dto.UserDto;
 import com.example.demo.domain.entity.Board;
 import com.example.demo.domain.entity.User;
 import com.example.demo.domain.repository.BoardRepository;
+import com.example.demo.domain.repository.FollowRepository;
 import com.example.demo.domain.repository.UserRepository;
+import com.example.demo.domain.service.FollowService;
 import com.example.demo.domain.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ResourceLoader;
@@ -49,6 +51,12 @@ public class UserController {
 
 	@Autowired
 	private BoardRepository boardRepository;
+
+	@Autowired
+	private FollowRepository followRepository;
+
+	@Autowired
+	private FollowService followService;
 
 	@GetMapping("/join")
 	public void join_get() {
@@ -182,12 +190,31 @@ public class UserController {
 		// 현재 인증된 사용자의 이메일 가져오기
 		String email = principalDetails.getUser().getEmail();
 
+		// 팔로우 리스트를 가져오기
+		List<User> followList = followService.getFollowList(email);
+
+		//팔로워 리스트를 가져오기
+		List<User> followerList = followService.getFollowerList(email);
+
 		System.out.println("user.getEmail(): "+email );
 		List<Board> myBoards = boardRepository.getBoardByEmailOrderByDateDesc(email);
 		System.out.println("myBoards' : " + myBoards);
+		String cntFollowing = followRepository.CntFollowing(email);
+		if (cntFollowing==null){
+			cntFollowing="0";
+		}
+		String cntFollower = followRepository.CntFollower(email);
+		if (cntFollower==null){
+			cntFollower="0";
+		}
 
 		model.addAttribute("myBoards", myBoards);
 		model.addAttribute("userDto",principalDetails.getUser());
+		model.addAttribute("cntFollowing",cntFollowing);
+		model.addAttribute("cntFollower",cntFollower);
+
+		model.addAttribute("followList", followList);
+		model.addAttribute("followerList", followerList);
 	}
 
 

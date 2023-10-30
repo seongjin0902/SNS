@@ -15,7 +15,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@500&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-  <link rel="stylesheet" href="/static/css/board.css">
+  <link rel="stylesheet" href="/css/board.css">
 
 
   <style>
@@ -217,7 +217,6 @@
 
           <a href="#">
             <div id = board_img>
-              <!-- 이미지 썸네일을 표시하는 이미지 태그 -->
               <div class="img" style="width : 585px;height : 650px;margin-bottom : 20px;">
 
 
@@ -251,10 +250,7 @@
           </a>
 
           <div class="like" style="width : 585px;">
-            <a th:href="@{'/like/' + ${board.number}}" class="like-button">
-              <span style="border-style : none;">❤️</span>
-              <!-- <span th:unless="${isLiked}">🖤</span> -->
-            </a>
+            <span class="heart" style="border-style : none;cursor : pointer;" th:data-board-number="${board.number}"></span>
             <span class="like-count" data-board-number="${board.number}" th:text="${board.like_count}">like</span>
           </div>
 
@@ -271,11 +267,11 @@
 
       .reply--block{
           position:relative;
-          top: 300px;
+          top: 250px;
           left: 20%;
           width: 350px;
 
-          height: 620px;
+          height: 650px;
           border: 1px solid lightgray;
           border-radius: 10px;
           padding: 10px;
@@ -318,7 +314,7 @@
 
       .reply--block>.reply-body{
 
-           height : 480px;
+           height : 525px;
            overflow : auto;
 
       }
@@ -391,7 +387,7 @@
 
     </style>
     <div class="comment-container">
-      <section class="reply--block">
+      <section class="reply--block" >
 
         <h4>댓글</h4>
 
@@ -413,7 +409,7 @@
           </div>
 
           <div>
-            <button class="btn btn-primary reply_btn" style="background-color : gray;">
+            <button class="btn btn-primary reply_btn" style="background-color : gray;border-style:none; height : 38.5px; width : 38.5px;">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send-fill" viewBox="0 0 16 16">
                 <path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/>
               </svg>
@@ -708,23 +704,55 @@ reply_btn_el.addEventListener('click', function () {
 
 <script>
   $(document).ready(function() {
-  $('.like-button').click(function(event) {
-      event.preventDefault();
-      var url = $(this).attr('href');
-      $.ajax({
-          type: 'GET',
-          url: url,
-          success: function(data) {
-              // 성공적으로 좋아요를 업데이트한 경우
-              console.log('좋아요 업데이트 성공');
-              // 페이지를 다시 로드
-        location.reload();
-          },
-          error: function() {
-              console.error('좋아요 업데이트 실패');
-          }
+
+      $('.heart').each(function(){
+
+          var heart = $(this);
+          var boardNumber = heart.data('board-number');
+
+          $.ajax({
+
+              type:'GET',
+              url:'/get-like-status/'+boardNumber,
+              success:function(hasLiked){
+
+              var heartIconSVG = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="red" class="bi bi-heart" viewBox="0 0 16 16">' +
+              '<path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.920 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.060.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>' +
+              '</svg>';
+
+              var FillheartIconSVG = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="red" class="bi bi-heart-fill" viewBox="0 0 16 16">'+
+              '<path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>'+
+              '</svg>';
+
+                  if(hasLiked==='true'){
+                      heart.html(FillheartIconSVG);
+                  }else{
+                      heart.html(heartIconSVG);
+                  }
+              },
+              error:function(){
+                  console.error('좋아요 상태 가져오기 실패');
+              }
+          });
       });
-  });
+
+      $('.heart').on('click', function(event) {
+          event.preventDefault();
+          var heart = $(this)
+          var boardNumber = heart.data('board-number');
+
+          $.ajax({
+              type: 'GET',
+              url: '/like/'+boardNumber,
+              success: function(isLiked) {
+
+                  location.reload();
+              },
+              error: function() {
+                  console.error('좋아요 업데이트 실패');
+              }
+          });
+      });
 });
 </script>
 

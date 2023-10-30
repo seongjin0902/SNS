@@ -35,7 +35,7 @@ public class BoardNotificationController {
             boardNotification.setIsread(true);  //읽음처리
             notificationRepository.save(boardNotification);//저장
         }
-       return list;
+        return list;
 
     }
     @GetMapping(value = "/isexist",produces = MediaType.APPLICATION_JSON_VALUE)

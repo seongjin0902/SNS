@@ -7,18 +7,13 @@
     <!-- 부트스트랩 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
     <!-- 구글폰트 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@500&display=swap" rel="stylesheet">
 
-<<<<<<< HEAD
     <link rel="stylesheet" href="/css/board.css">
-=======
-    <link rel="stylesheet" href="/static/css/board.css">
->>>>>>> 6fe5210 (.)
 
     <style>
 
@@ -33,7 +28,19 @@
             margin : 2px;
         }
 
+        .Flist::-webkit-scrollbar {
+            width: 0.4em; /* 수평 스크롤바 너비 */
+            display : none;
+        }
 
+        .Flist::-webkit-scrollbar-thumb {
+            background-color: rgb(192, 192, 192);
+            border-radius: 15px;
+        }
+
+        .Flist::-webkit-scrollbar-track {
+            background: transparent;
+        }
 
     </style>
 </head>
@@ -154,7 +161,7 @@
     </div>
     <div class="offcanvas-body">
         <div id="notification-container">
-            <!-- 알림이 여기에 동적으로 추가될 것입니다. -->
+            <!-- 알림이 여기에 동적으로 추가 -->
         </div>
     </div>
 </div>
@@ -249,12 +256,13 @@
                     </a>
 
                     <div class="like">
-                        <a th:href="@{'/like/' + ${data.board.number}}" class="like-button">
-                            <span style="border-style : none;">❤️</span>
-                            <!-- <span th:unless="${isLiked}">🖤</span> -->
-                        </a>
-                        <span class="like-count" data-board-number="${data.board.number}" th:text="${data.board.like_count}">like</span>
-                        <span style="font-size: 17px;">🗨️</span>
+                        <span class="heart" style="border-style : none;cursor : pointer;" th:data-board-number="${data.board.number}"></span>
+                        <span class="like-count" th:text="${data.board.like_count}">like</span>
+                        <span style="font-size: 17px;margin-left : 25px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chat-left" viewBox="0 0 16 16">
+                                <path d="M14 1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4.414A2 2 0 0 0 3 11.586l-2 2V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12.793a.5.5 0 0 0 .854.353l2.853-2.853A1 1 0 0 1 4.414 12H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
+                            </svg>
+                        </span>
                         <span class="reply-count" th:text="${data.cnt}">0</span>
 
                     </div>
@@ -264,8 +272,28 @@
 
 
         </div>
-        <div class="fallow">
-            <h6>친구목록</h6>
+        <div class="followlist" style="width : 500px;
+    margin-left : 150px;
+    margin-top : 50px;">
+            <!--            내정보-->
+            <div class="myInfo" style="height : 60px;margin-top : 15px;">
+                <img th:src="${#authentication.getPrincipal().getUser().getProfile()}" style="width:40px;height:40px;border-radius:50%;margin-left : 10px;margin-right : 10px;" />
+                <span th:text="${#authentication.getPrincipal().getUser().getEmail()}">my email</span>
+            </div>
+
+            <!--            친구정보-->
+            <div class="Flist" style="padding-top : 20px;border-top : 1px solid rgb(194, 194, 194); max-height: 340px; overflow-y: auto;border : 1px solid rgb(192, 192, 192);border-radius : 15px;">
+                <!-- followList가 리스트일 경우 각 항목을 순회하며 표시 -->
+                <div th:each="follow : ${followList}" style="height : 60px; margin-bottom : 10px;margin-left : 20px;">
+                    <a th:href="'/nampage/' + ${follow.email}" style="text-decoration: none; color : black;">
+
+                        <!-- follower 객체에서 필요한 속성을 가져와서 표시 -->
+                        <img th:src="${follow.profile}" style="width:40px;height:40px;border-radius:50%;margin-top : 10px;margin-bottom:10px; margin-right : 20px;" />
+
+                        <span th:text="${follow.nickname}">nam email</span>
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -309,42 +337,6 @@
     });
 </script>
 
-
-<!--<script>-->
-<!--    document.addEventListener('DOMContentLoaded', function () {-->
-
-<!--        var boardItems = document.querySelectorAll('.board-item');-->
-
-<!--        console.log(boardItems);-->
-
-<!--        boardItems.forEach(function (item) {-->
-
-<!--            var boardNumber = item.getAttribute('data-board-number');-->
-
-<!--            console.log(boardNumber);-->
-
-<!--            var replyCountElement = item.querySelector('.reply-count');-->
-
-<!--            //boardNumber를 사용하여 getReplyCount 호출-->
-<!--            getReplyCount(boardNumber, replyCountElement);-->
-<!--        });-->
-<!--    });-->
-
-<!--    function getReplyCount(boardNumber, replyCountElement) {-->
-
-<!--        fetch('/getReplyCount/' + boardNumber) // 서비스 엔드포인트 URL-->
-<!--            .then(function (response) {-->
-<!--                return response.json();-->
-<!--            })-->
-<!--            .then(function (data) {-->
-<!--                replyCountElement.textContent = data.replyCount;-->
-<!--            })-->
-<!--            .catch(function (error) {-->
-<!--                console.error('댓글 수를 가져오는 중 오류 발생: ' + error);-->
-<!--            });-->
-<!--    }-->
-<!--</script>-->
-
 <script>
 
     function logoutAndRedirect() {
@@ -365,26 +357,57 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 
-
 <script>
     $(document).ready(function() {
-    $('.like-button').click(function(event) {
-        event.preventDefault();
-        var url = $(this).attr('href');
-        $.ajax({
-            type: 'GET',
-            url: url,
-            success: function(data) {
-                // 성공적으로 좋아요를 업데이트한 경우
-                console.log('좋아요 업데이트 성공');
-                // 페이지를 다시 로드
-                location.reload();
-            },
-            error: function() {
-                console.error('좋아요 업데이트 실패');
-            }
+
+        $('.heart').each(function(){
+
+            var heart = $(this);
+            var boardNumber = heart.data('board-number');
+
+            $.ajax({
+
+                type:'GET',
+                url:'/get-like-status/'+boardNumber,
+                success:function(hasLiked){
+
+                var heartIconSVG = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="red" class="bi bi-heart" viewBox="0 0 16 16">' +
+                '<path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.920 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.060.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>' +
+                '</svg>';
+
+                var FillheartIconSVG = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="red" class="bi bi-heart-fill" viewBox="0 0 16 16">'+
+                '<path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>'+
+                '</svg>';
+
+                    if(hasLiked==='true'){
+                        heart.html(FillheartIconSVG);
+                    }else{
+                        heart.html(heartIconSVG);
+                    }
+                },
+                error:function(){
+                    console.error('좋아요 상태 가져오기 실패');
+                }
+            });
         });
-    });
+
+        $('.heart').on('click', function(event) {
+            event.preventDefault();
+            var heart = $(this)
+            var boardNumber = heart.data('board-number');
+
+            $.ajax({
+                type: 'GET',
+                url: '/like/'+boardNumber,
+                success: function(isLiked) {
+
+                    location.reload();
+                },
+                error: function() {
+                    console.error('좋아요 업데이트 실패');
+                }
+            });
+        });
 });
 </script>
 
@@ -511,6 +534,7 @@ const add_product_btn_el = document.querySelector('.add_product_btn');
 
 		})
 </script>
+
 <script>
     //---------------------------------
     //소켓 연결
@@ -532,12 +556,7 @@ const add_product_btn_el = document.querySelector('.add_product_btn');
             }
    };
 
-
-
-
 </script>
-
-
 
 
 </body>

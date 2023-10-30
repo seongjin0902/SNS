@@ -64,12 +64,6 @@ dependencies {
 	//MAIL
 	implementation 'org.springframework.boot:spring-boot-starter-mail:2.7.1'
 
-	//Thumbnailator
-	implementation group: 'net.coobird', name: 'thumbnailator', version: '0.4.20'
-
-	//Image Update static resources reload https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-devtools
-	//implementation group: 'org.springframework.boot', name: 'spring-boot-devtools', version: '2.7.15'
-
 	//RESTCONTROLLER ADDED
 	implementation 'com.googlecode.json-simple:json-simple:1.1.1'
 	implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.2'
